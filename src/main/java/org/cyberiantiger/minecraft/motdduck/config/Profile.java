@@ -120,6 +120,9 @@ public class Profile {
     private int maxPlayers;
     private List<String> playerListServers;
     private PlayerListType playerListType = PlayerListType.NONE;
+    private boolean whitelistMode = false;
+    private String whitelistMsg = "You are not whitelisted for this server.";
+    private List<String> whitelistUsers = new ArrayList<String>();
 
     private int maxPlayerList = 10;
 
@@ -194,6 +197,18 @@ public class Profile {
         } else {
             return null;
         }
+    }
+    
+    public boolean getWhitelistMode() {
+    	return whitelistMode;
+    }
+
+    public String getWhitelistMsg() {
+    	return whitelistMsg;
+    }
+
+    public List<String> getWhitelistUsers() {
+    	return whitelistUsers;
     }
 
     public Players getPlayers(Main plugin) {

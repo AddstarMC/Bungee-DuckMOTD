@@ -5,24 +5,27 @@
 package org.cyberiantiger.minecraft.motdduck;
 
 import com.google.common.io.ByteStreams;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.logging.Level;
+
+import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.Favicon;
 import net.md_5.bungee.api.ServerPing;
 import net.md_5.bungee.api.ServerPing.Players;
 import net.md_5.bungee.api.ServerPing.Protocol;
 import net.md_5.bungee.api.config.ListenerInfo;
 import net.md_5.bungee.api.connection.PendingConnection;
-import net.md_5.bungee.api.connection.ProxiedPlayer;
-import net.md_5.bungee.api.event.PostLoginEvent;
+import net.md_5.bungee.api.event.PreLoginEvent;
 import net.md_5.bungee.api.event.ProxyPingEvent;
 import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.api.plugin.Plugin;
 import net.md_5.bungee.event.EventHandler;
+
 import org.cyberiantiger.minecraft.motdduck.config.Config;
 import org.cyberiantiger.minecraft.motdduck.config.Data;
 import org.cyberiantiger.minecraft.motdduck.config.Profile;
@@ -104,9 +107,10 @@ public class Main extends Plugin implements Listener {
     }
 
     public void saveData() {
-        if (userData != null) {
-            userData.save(getDataFile());
-        }
+        if (userData == null)
+        	return;
+
+        userData.save(getDataFile());
         try {
             Yaml yaml = new Yaml();
             yaml.setBeanAccess(BeanAccess.FIELD);
@@ -127,7 +131,7 @@ public class Main extends Plugin implements Listener {
     public void onLoad() {
         saveDefaultConfig();
         loadConfig();
-        loadData();
+        //loadData();
     }
 
     @Override
@@ -138,16 +142,16 @@ public class Main extends Plugin implements Listener {
 
     @Override
     public void onDisable() {
-        saveData();
+        //saveData();
     }
 
-    @EventHandler
+/*    @EventHandler
     public void onPostLoginEvent(PostLoginEvent e) {
         ProxiedPlayer player = e.getPlayer();
         if (player != null) {
             userData.addPlayer(e.getPlayer().getUniqueId(), e.getPlayer().getName(), e.getPlayer().getAddress().getAddress().getHostAddress());
         }
-    }
+    }*/
 
     @EventHandler
     public void onProxyPing(ProxyPingEvent e) {
@@ -159,11 +163,11 @@ public class Main extends Plugin implements Listener {
                 ServerPing response = e.getResponse();
                 Favicon icon = profile.getFavicon(this);
                 Protocol protocol = profile.getProtocol(this, c);
-                String user = userData.getPlayer(c.getAddress().getAddress().getHostAddress());
+                //String user = userData.getPlayer(c.getAddress().getAddress().getHostAddress());
                 String motd = null;
-                if (user != null) {
+                /*if (user != null) {
                     motd = profile.getDynamicMotd(user);
-                } 
+                }*/
                 if (motd == null) {
                     motd = profile.getStaticMotd();
                 }
@@ -180,6 +184,24 @@ public class Main extends Plugin implements Listener {
                 if (players != null) {
                     response.setPlayers(players);
                 }
+            }
+        }
+    }
+    
+    @EventHandler
+    public void onPlayerConnect(PreLoginEvent e) {
+        PendingConnection c = e.getConnection();
+        ListenerInfo l = c.getListener();
+        if (config != null) {
+            Profile profile = config.findProfile(this, c, l);
+            String name = e.getConnection().getName();
+            if ((profile != null) && (profile.getWhitelistMode()) && (profile.getWhitelistUsers() != null)) {
+            	if (!profile.getWhitelistUsers().contains(name)) {
+            		String kickmsg = ChatColor.translateAlternateColorCodes('&', profile.getWhitelistMsg());
+            		System.out.println(name + " (" + e.getConnection().getAddress().getAddress() + ") disconnected: " + kickmsg);
+			    	e.setCancelled(true);
+			    	e.setCancelReason(kickmsg);
+            	}
             }
         }
     }
