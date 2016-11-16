@@ -1,4 +1,4 @@
 name: DuckMOTD
 main : org.cyberiantiger.minecraft.motdduck.Main
-version: ${version}-${project.build.number}
+version: ${plugin.version}
 author: cybertiger
