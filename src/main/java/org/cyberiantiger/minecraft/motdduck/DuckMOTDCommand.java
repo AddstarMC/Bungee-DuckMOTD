@@ -5,6 +5,7 @@
 package org.cyberiantiger.minecraft.motdduck;
 
 import net.md_5.bungee.api.CommandSender;
+import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.plugin.Command;
 
 /**
@@ -24,9 +25,9 @@ class DuckMOTDCommand extends Command {
         try {
             plugin.saveData();
             plugin.loadConfig();
-            cs.sendMessage("DuckMOTD config reloaded.");
+            cs.sendMessage(TextComponent.fromLegacyText("DuckMOTD config reloaded."));
         } catch (IllegalStateException e) {
-            cs.sendMessage("Your configuration is broken, check your proxy log.");
+            cs.sendMessage(TextComponent.fromLegacyText("Your configuration is broken, check your proxy log."));
         }
     }
 }

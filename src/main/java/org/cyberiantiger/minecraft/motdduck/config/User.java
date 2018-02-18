@@ -8,7 +8,7 @@ package org.cyberiantiger.minecraft.motdduck.config;
  *
  * @author antony
  */
-public class User {
+class User {
     private String name;
     private String lastIP;
     private long lastUpdated;

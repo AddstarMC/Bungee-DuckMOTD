@@ -23,7 +23,7 @@ public class Config {
     private Map<String, Profile> profiles;
     private Map<String, Server> servers;
 
-    private transient final Map<ListenerInfo, Server> serverCache = new HashMap<ListenerInfo, Server>();
+    private transient final Map<ListenerInfo, Server> serverCache = new HashMap<>();
 
     private boolean hostMatch(Main plugin, String host, ListenerInfo info) {
         int split = host.lastIndexOf(':');
@@ -80,10 +80,6 @@ public class Config {
         if (serverMatch != null) {
             profileName = serverMatch.findProfileName(plugin, connection);
         }
-        if (!profiles.containsKey(profileName)) {
-            return null;
-        } else {
-            return profiles.get(profileName);
-        }
+        return profiles.getOrDefault(profileName, null);
     }
 }

@@ -45,7 +45,7 @@ public class MainTest {
     private static final String PROTOCOL_YAML = "name: 1.7.10\nversion: 5";
 
     @Test
-    public void testDuckProtocol() throws Exception {
+    public void testDuckProtocol() {
         Yaml configLoader = new Yaml(new CustomClassLoaderConstructor(DuckProtocol.class, getClass().getClassLoader()));
         configLoader.setBeanAccess(BeanAccess.FIELD);
         DuckProtocol proto = configLoader.loadAs(new StringReader(PROTOCOL_YAML), DuckProtocol.class);

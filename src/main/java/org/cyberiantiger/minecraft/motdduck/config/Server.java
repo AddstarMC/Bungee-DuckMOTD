@@ -16,7 +16,7 @@ import org.cyberiantiger.minecraft.motdduck.Main;
  *
  * @author antony
  */
-public class Server {
+class Server {
 
     private String defaultProfile;
     private Map<String, String> namedHosts;
@@ -29,7 +29,7 @@ public class Server {
                 if (namedHosts == null) {
                     namedHostLookup = Collections.emptyMap();
                 } else {
-                    namedHostLookup = new LinkedHashMap<Pattern, String>(namedHosts.size());
+                    namedHostLookup = new LinkedHashMap<>(namedHosts.size());
                     for (Map.Entry<String, String> e : namedHosts.entrySet()) {
                         namedHostLookup.put(asRegex(e.getKey()), e.getValue());
                     }

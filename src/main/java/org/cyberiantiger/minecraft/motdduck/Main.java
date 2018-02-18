@@ -18,6 +18,8 @@ import net.md_5.bungee.api.Favicon;
 import net.md_5.bungee.api.ServerPing;
 import net.md_5.bungee.api.ServerPing.Players;
 import net.md_5.bungee.api.ServerPing.Protocol;
+import net.md_5.bungee.api.chat.BaseComponent;
+import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.config.ListenerInfo;
 import net.md_5.bungee.api.connection.PendingConnection;
 import net.md_5.bungee.api.event.PreLoginEvent;
@@ -61,11 +63,8 @@ public class Main extends Plugin implements Listener {
         File config = getConfigFile();
         if (!config.exists()) {
             try {
-                FileOutputStream out = new FileOutputStream(config);
-                try {
+                try (FileOutputStream out = new FileOutputStream(config)) {
                     ByteStreams.copy(getClass().getClassLoader().getResourceAsStream(CONFIG), new FileOutputStream(config));
-                } finally {
-                    out.close();
                 }
             } catch (IOException ex) {
                 getLogger().log(Level.SEVERE, "Could not create config", ex);
@@ -79,9 +78,7 @@ public class Main extends Plugin implements Listener {
             Yaml configLoader = new Yaml(new CustomClassLoaderConstructor(Config.class, getClass().getClassLoader()));
             configLoader.setBeanAccess(BeanAccess.FIELD);
             this.config = configLoader.loadAs(new FileReader(getConfigFile()), Config.class);
-        } catch (IOException ex) {
-            getLogger().log(Level.SEVERE, "Error loading configuration", ex);
-        } catch (YAMLException ex) {
+        } catch (IOException | YAMLException ex) {
             getLogger().log(Level.SEVERE, "Error loading configuration", ex);
         }
     }
@@ -115,13 +112,10 @@ public class Main extends Plugin implements Listener {
         try {
             Yaml yaml = new Yaml();
             yaml.setBeanAccess(BeanAccess.FIELD);
-            FileWriter out = new FileWriter(getDataFile());
-            try {
-                synchronized(userData) {
+            try (FileWriter out = new FileWriter(getDataFile())) {
+                synchronized (userData) {
                     out.write(yaml.dumpAsMap(userData));
                 }
-            } finally  {
-                out.close();
             }
         } catch (IOException ex) {
             getLogger().log(Level.WARNING, "Failed to write userdata file: " + getDataFile(), ex);
@@ -169,9 +163,7 @@ public class Main extends Plugin implements Listener {
                 /*if (user != null) {
                     motd = profile.getDynamicMotd(user);
                 }*/
-                if (motd == null) {
-                    motd = profile.getStaticMotd();
-                }
+                motd = profile.getStaticMotd();
                 Players players = profile.getPlayers(this);
                 if (icon != null) {
                     response.setFavicon(icon);
@@ -180,7 +172,9 @@ public class Main extends Plugin implements Listener {
                     response.setVersion(protocol);
                 }
                 if (motd != null) {
-                    response.setDescription(motd);
+                    BaseComponent[] text = TextComponent.fromLegacyText(motd);
+
+                    response.setDescriptionComponent(text[0]);
                 }
                 if (players != null) {
                     response.setPlayers(players);
@@ -201,7 +195,7 @@ public class Main extends Plugin implements Listener {
             		String kickmsg = ChatColor.translateAlternateColorCodes('&', profile.getWhitelistMsg());
             		System.out.println(name + " (" + e.getConnection().getAddress().getAddress() + ") disconnected: " + kickmsg);
 			    	e.setCancelled(true);
-			    	e.setCancelReason(kickmsg);
+			    	e.setCancelReason(TextComponent.fromLegacyText(kickmsg));
             	}
             }
         }

@@ -8,7 +8,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -36,19 +35,9 @@ import org.cyberiantiger.minecraft.motdduck.Main;
 public class Profile {
     private static final PlayerInfo[] EMPTY_PLAYER_LIST = new PlayerInfo[0];
     private static final Comparator<PlayerInfo> PLAYER_INFO_COMPARATOR =
-            new Comparator<PlayerInfo>() {
-                @Override
-                public int compare(PlayerInfo o1, PlayerInfo o2) {
-                    return String.CASE_INSENSITIVE_ORDER.compare(o1.getName(), o2.getName());
-                }
-            };
+            (o1, o2) -> String.CASE_INSENSITIVE_ORDER.compare(o1.getName(), o2.getName());
     private static final Comparator<ServerInfo> SERVER_COMPARATOR =
-            new Comparator<ServerInfo>() {
-                @Override
-                public int compare(ServerInfo o1, ServerInfo o2) {
-                    return String.CASE_INSENSITIVE_ORDER.compare(o1.getName(), o2.getName());
-                }
-            };
+            (o1, o2) -> String.CASE_INSENSITIVE_ORDER.compare(o1.getName(), o2.getName());
 
     private enum PlayerListType {
         NONE() {
@@ -89,7 +78,7 @@ public class Profile {
             public PlayerInfo[] getPlayerInfos(Main plugin, Profile profile, List<ProxiedPlayer> players) {
                 int playerCount = players.size();
                 int maxPlayers = profile.maxPlayers;
-                List<PlayerInfo> result = new ArrayList<PlayerInfo>();
+                List<PlayerInfo> result = new ArrayList<>();
                 if (profile.playerListNetworkHeader != null) {
                     for (String s : profile.playerListNetworkHeader) {
                         result.add(new PlayerInfo(String.format(s, playerCount, maxPlayers), ""));
@@ -97,8 +86,7 @@ public class Profile {
                 }
                 for (ServerInfo info : profile.getPlayerListNetworkServers(plugin)) {
                     int serverPlayerCount = info.getPlayers().size();
-                    String format = profile.playerListNetworkServerFormat;
-                    result.add(new PlayerInfo(String.format(format, info.getName(), serverPlayerCount, maxPlayers), ""));
+                    result.add(new PlayerInfo(String.format(profile.playerListNetworkServerFormat, info.getName(), serverPlayerCount, maxPlayers), ""));
                 }
                 if (profile.playerListNetworkFooter != null) {
                     for (String s : profile.playerListNetworkFooter) {
@@ -109,7 +97,7 @@ public class Profile {
             }
         };
 
-        public abstract PlayerInfo[] getPlayerInfos(Main plugin, Profile profile, List<ProxiedPlayer> players);
+        protected abstract PlayerInfo[] getPlayerInfos(Main plugin, Profile profile, List<ProxiedPlayer> players);
 
     }
 
@@ -119,19 +107,17 @@ public class Profile {
     private List<String> staticMotd;
     private int maxPlayers;
     private List<String> playerListServers;
-    private PlayerListType playerListType = PlayerListType.NONE;
-    private boolean whitelistMode = false;
-    private String whitelistMsg = "You are not whitelisted for this server.";
-    private List<String> whitelistUsers = new ArrayList<String>();
+    private final PlayerListType playerListType = PlayerListType.NONE;
+    private final List<String> whitelistUsers = new ArrayList<>();
 
-    private int maxPlayerList = 10;
+    private final int maxPlayerList = 10;
 
     private List<String> playerListFixed;
 
     private List<String> playerListNetworkHeader;
     private List<String> playerListNetworkServers;
     private List<String> playerListNetworkFooter;
-    private String playerListNetworkServerFormat = "%s (%d/%d)";
+    private final String playerListNetworkServerFormat = "%s (%d/%d)";
 
     private transient boolean loadedFavicon;
     private transient Favicon favicon;
@@ -139,14 +125,7 @@ public class Profile {
     private transient Set<ServerInfo> playerListServersSet;
     private transient List<ServerInfo> playerListNetworkServersList;
 
-    private static final ThreadLocal<Random> RNG = new ThreadLocal<Random>() {
-
-        @Override
-        protected Random initialValue() {
-            return new Random();
-        }
-        
-    };
+    private static final ThreadLocal<Random> RNG = ThreadLocal.withInitial(Random::new);
 
     public Favicon getFavicon(Main plugin) {
         synchronized(this) {
@@ -155,7 +134,7 @@ public class Profile {
                     File faviconFile = new File(plugin.getDataFolder(), icon);
                     if (faviconFile.isFile()) {
                         try {
-                            favicon = favicon.create(ImageIO.read(faviconFile));
+                            favicon = Favicon.create(ImageIO.read(faviconFile));
                         } catch (IOException ex) {
                             plugin.getLogger().log(Level.WARNING, "Error loading icon file: " + faviconFile, ex);
                         }
@@ -200,11 +179,11 @@ public class Profile {
     }
     
     public boolean getWhitelistMode() {
-    	return whitelistMode;
+        return false;
     }
 
     public String getWhitelistMsg() {
-    	return whitelistMsg;
+        return "You are not whitelisted for this server.";
     }
 
     public List<String> getWhitelistUsers() {
@@ -216,7 +195,7 @@ public class Profile {
         synchronized(this) {
             if (!loadedPlayerList) {
                 if (playerListServers != null) {
-                    playerListServersSet = new HashSet(playerListServers.size());
+                    playerListServersSet = new HashSet<>(playerListServers.size());
                     for (String server : playerListServers) {
                         ServerInfo serverInfo = proxy.getServerInfo(server);
                         if (serverInfo != null) {
@@ -227,7 +206,7 @@ public class Profile {
                 loadedPlayerList = true;
             }
         }
-        List<ProxiedPlayer> result = new LinkedList<ProxiedPlayer>();
+        List<ProxiedPlayer> result = new LinkedList<>();
         for (ProxiedPlayer player : plugin.getProxy().getPlayers()) {
             Server server = player.getServer();
             if (server != null) {
@@ -246,7 +225,7 @@ public class Profile {
     private Iterable<ServerInfo> getPlayerListNetworkServers(Main plugin) {
         synchronized (this) {
             if (playerListNetworkServersList == null) {
-                playerListNetworkServersList = new ArrayList();
+                playerListNetworkServersList = new ArrayList<>();
                 if (playerListNetworkServers != null) {
                     for (String s : playerListNetworkServers) {
                         ServerInfo info = plugin.getProxy().getServerInfo(s);
@@ -256,7 +235,7 @@ public class Profile {
                     }
                 } else {
                     playerListNetworkServersList.addAll(plugin.getProxy().getServers().values());
-                    Collections.sort(playerListNetworkServersList, SERVER_COMPARATOR);
+                    playerListNetworkServersList.sort(SERVER_COMPARATOR);
                 }
             }
             return playerListNetworkServersList;

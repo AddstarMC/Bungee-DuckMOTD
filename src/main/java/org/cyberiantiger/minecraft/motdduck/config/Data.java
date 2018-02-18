@@ -8,8 +8,6 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -26,7 +24,7 @@ import org.yaml.snakeyaml.introspector.BeanAccess;
  */
 public class Data {
 
-    private Map<String, User> data = new LinkedHashMap();
+    private Map<String, User> data = new LinkedHashMap<>();
 
     private transient Main plugin;
     private transient Map<String, String> hostToUser;
@@ -36,7 +34,7 @@ public class Data {
 
     public Data(Main plugin) {
         this.plugin = plugin;
-        data = new LinkedHashMap();
+        data = new LinkedHashMap<>();
     }
 
     public Data(Main plugin, Map<String, User> data) {
@@ -54,16 +52,13 @@ public class Data {
 
     private Map<String,String> getHostToUser() {
         if (hostToUser == null) {
-            hostToUser = new HashMap<String, String>();
-            List<User> entries = new ArrayList<User>(data.size());
+            hostToUser = new HashMap<>();
+            List<User> entries = new ArrayList<>(data.size());
             entries.addAll(data.values());
-            Collections.sort(entries, new Comparator<User>() {
-                @Override
-                public int compare(User o1, User o2) {
-                    long o1Val = o1.getLastUpdated();
-                    long o2Val = o2.getLastUpdated();
-                    return o1Val < o2Val ? -1 : (o1Val > o2Val ? 1 : 0);
-                }
+            entries.sort((o1, o2) -> {
+                long o1Val = o1.getLastUpdated();
+                long o2Val = o2.getLastUpdated();
+                return Long.compare(o1Val, o2Val);
             });
             for (User u : entries) {
                 hostToUser.put(u.getLastIP(), u.getName());
@@ -85,11 +80,8 @@ public class Data {
         try {
             Yaml yaml = new Yaml();
             yaml.setBeanAccess(BeanAccess.FIELD);
-            FileWriter out = new FileWriter(dataFile);
-            try {
+            try (FileWriter out = new FileWriter(dataFile)) {
                 out.write(yaml.dumpAsMap(this));
-            } finally  {
-                out.close();
             }
         } catch (IOException ex) {
             plugin.getLogger().log(Level.WARNING, "Failed to write userdata file: " + dataFile, ex);
