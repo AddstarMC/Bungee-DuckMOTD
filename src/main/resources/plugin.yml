@@ -1,4 +1,4 @@
 name: DuckMOTD
 main : org.cyberiantiger.minecraft.motdduck.Main
 version: ${plugin.version}
-author: cybertiger
+author: cybertiger, Narimm

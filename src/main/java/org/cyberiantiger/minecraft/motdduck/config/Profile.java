@@ -32,6 +32,7 @@ import org.cyberiantiger.minecraft.motdduck.Main;
  *
  * @author antony
  */
+@SuppressWarnings({"unused"}) //config class
 public class Profile {
     private static final PlayerInfo[] EMPTY_PLAYER_LIST = new PlayerInfo[0];
     private static final Comparator<PlayerInfo> PLAYER_INFO_COMPARATOR =
@@ -42,27 +43,36 @@ public class Profile {
     private final PlayerListType playerListType = PlayerListType.NONE;
     private final List<String> whitelistUsers = new ArrayList<>();
     private final int maxPlayerList = 10;
-    private int minProtocolVersion = 0;
-    private String versionLowMessage = "Please update your client to %s";
+    private final int minProtocolVersion = 0;
+    @SuppressWarnings("FieldCanBeLocal")
+    private final String versionLowMessage = "Please update your client to %s";
     private final String playerListNetworkServerFormat = "%s (%d/%d)";
     private String icon;
+    @SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
     private Map<Integer, DuckProtocol> protocolVersions;
 
-    private List<String> dynamicMotd;
+    @SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
     private List<String> staticMotd;
     private int maxPlayers;
+    @SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
     private List<String> playerListServers;
+    @SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
     private List<String> playerListFixed;
+    @SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
     private List<String> playerListNetworkHeader;
+    @SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
     private List<String> playerListNetworkServers;
+    @SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
     private List<String> playerListNetworkFooter;
     private transient boolean loadedFavicon;
     private transient Favicon favicon;
     private transient boolean loadedPlayerList;
     private transient Set<ServerInfo> playerListServersSet;
     private transient List<ServerInfo> playerListNetworkServersList;
-    private boolean whitelistMode = false;
-    private String whitelistMsg = "You are not whitelisted for this server.";
+    @SuppressWarnings("FieldCanBeLocal")
+    private final boolean whitelistMode = false;
+    @SuppressWarnings("FieldCanBeLocal")
+    private final String whitelistMsg = "You are not whitelisted for this server.";
 
     public int getMinProtocolVersion() {
         return minProtocolVersion;
@@ -87,6 +97,7 @@ public class Profile {
         return favicon;
     }
 
+    @SuppressWarnings("ConstantConditions")
     public Protocol getProtocol(Main plugin, PendingConnection c) {
         synchronized(this) {
             if (protocolVersions == null) {
@@ -111,13 +122,6 @@ public class Profile {
         }
     }
 
-    public String getDynamicMotd(String user) {
-        if (dynamicMotd != null && !dynamicMotd.isEmpty())  {
-            return String.format(dynamicMotd.get(RNG.get().nextInt(dynamicMotd.size())), user);
-        } else {
-            return null;
-        }
-    }
 
     public String getStaticMotd() {
         if (staticMotd != null && !staticMotd.isEmpty()) {
@@ -249,7 +253,7 @@ public class Profile {
                         result.add(new PlayerInfo(String.format(s, playerCount, maxPlayers), ""));
                     }
                 }
-                return result.toArray(new PlayerInfo[result.size()]);
+                return result.toArray(new PlayerInfo[0]);
             }
         };
 

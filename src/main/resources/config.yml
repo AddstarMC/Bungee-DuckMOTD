@@ -8,7 +8,7 @@ profiles:
         # in plugins/DuckChat
         #
 #        icon: server.png
-        # This is a the protocol version we want at minimum if you set this value you must at mimum create a
+        # This is a the protocol version we want at minimum if you set this value you must at also create a
         # protocolVersion entry that matches it
 #       minProtocolVersion: 4
         # List of client protocol versions, and what version to
@@ -51,7 +51,7 @@ profiles:
 
         # A player list can be sent back to the client
         # (shown in the mouse over for the server version in the client).
-        # We support 3 differents types of player list.
+        # We support 3 different types of player list.
         # The player list is affected by the maxPlayer setting and the
         # playerListNetworkServers setting, if set.
 

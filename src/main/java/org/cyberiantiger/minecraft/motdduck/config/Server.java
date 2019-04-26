@@ -16,10 +16,11 @@ import org.cyberiantiger.minecraft.motdduck.Main;
  *
  * @author antony
  */
-@SuppressWarnings("WeakerAccess")//this is a config class
+@SuppressWarnings({"WeakerAccess","unused"})//this is a config class
 public class Server {
 
     private String defaultProfile;
+    @SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
     private Map<String, String> namedHosts;
 
     private transient Map<Pattern, String> namedHostLookup;

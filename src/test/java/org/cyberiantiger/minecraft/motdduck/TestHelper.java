@@ -16,13 +16,13 @@ import java.util.*;
 import java.util.logging.Logger;
 
 /**
- * Created for the Charlton IT Project.
- * Created by benjicharlton on 26/04/2019.
+ * Created for the AddstarMC Project.
+ * Created by Narimm on 26/04/2019.
  */
-public class TestHelper {
-    static UUID testUUID;
-    static InetSocketAddress address;
-    static ListenerInfo info;
+class TestHelper {
+    private static UUID testUUID;
+    private static InetSocketAddress address;
+    private static ListenerInfo info;
     public static PendingConnection createPendingConnection(final int version){
         testUUID = UUID.randomUUID();
         address = new InetSocketAddress("localhost",22577);
@@ -119,6 +119,7 @@ public class TestHelper {
     }
 
     static ProxyServer createTestProxy(){
+        //noinspection deprecation
         return new ProxyServer() {
             @Override
             public String getName() {

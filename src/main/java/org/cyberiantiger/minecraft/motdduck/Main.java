@@ -6,11 +6,7 @@ package org.cyberiantiger.minecraft.motdduck;
 
 import com.google.common.io.ByteStreams;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.util.logging.Level;
 
 import net.md_5.bungee.api.ChatColor;
@@ -44,20 +40,26 @@ public class Main extends Plugin implements Listener {
 
     private Config config;
 
+    @SuppressWarnings("WeakerAccess")
     protected File getConfigFile() {
         return new File(getDataFolder(), CONFIG);
     }
 
+    @SuppressWarnings("UnstableApiUsage")
     private void saveDefaultConfig() {
         File data = getDataFolder();
         if (!data.exists()) {
+            //noinspection ResultOfMethodCallIgnored
             data.mkdir();
         }
         File config = getConfigFile();
         if (!config.exists()) {
             try {
                 try (FileOutputStream out = new FileOutputStream(config)) {
-                    ByteStreams.copy(getClass().getClassLoader().getResourceAsStream(CONFIG), out);
+                    InputStream stream = getClass().getClassLoader().getResourceAsStream(CONFIG);
+                    if(stream != null) {
+                        ByteStreams.copy(stream, out);
+                    }
                 }
             } catch (IOException ex) {
                 getLogger().log(Level.SEVERE, "Could not create config", ex);
@@ -99,7 +101,7 @@ public class Main extends Plugin implements Listener {
                 ServerPing response = e.getResponse();
                 Favicon icon = profile.getFavicon(this);
                 Protocol protocol = profile.getProtocol(this, c);
-                String motd = null;
+                String motd;
                 motd = profile.getStaticMotd();
                 Players players = profile.getPlayers(this);
                 if (icon != null) {
@@ -108,12 +110,11 @@ public class Main extends Plugin implements Listener {
                 if (protocol != null) {
                     response.setVersion(protocol);
                     motd = null;
-                    response.setDescriptionComponent(TextComponent.fromLegacyText(ChatColor.DARK_RED+profile.getVersionLowMessage())[0]);
-                };
+                    response.setDescriptionComponent(new TextComponent(TextComponent.fromLegacyText(ChatColor.DARK_RED+profile.getVersionLowMessage())));
+                }
                 if (motd != null) {
-                    BaseComponent[] text = TextComponent.fromLegacyText(motd);
-
-                    response.setDescriptionComponent(text[0]);
+                    BaseComponent text = new TextComponent(TextComponent.fromLegacyText(motd));
+                    response.setDescriptionComponent(text);
                 }
                 if (players != null) {
                     response.setPlayers(players);
@@ -129,13 +130,23 @@ public class Main extends Plugin implements Listener {
         if (config != null) {
             Profile profile = config.findProfile(this, c, l);
             String name = e.getConnection().getName();
-            if ((profile != null) && (profile.getWhitelistMode()) && (profile.getWhitelistUsers() != null)) {
-            	if (!profile.getWhitelistUsers().contains(name)) {
-            		String kickmsg = ChatColor.translateAlternateColorCodes('&', profile.getWhitelistMsg());
-            		System.out.println(name + " (" + e.getConnection().getAddress().getAddress() + ") disconnected: " + kickmsg);
-			    	e.setCancelled(true);
-			    	e.setCancelReason(TextComponent.fromLegacyText(kickmsg));
-            	}
+            if (profile != null) {
+                if(profile.getWhitelistMode() && profile.getWhitelistUsers() != null) {
+                    if (!profile.getWhitelistUsers().contains(name)) {
+                        String kickmsg = ChatColor.translateAlternateColorCodes('&', profile.getWhitelistMsg());
+                        System.out.println(name + " (" + e.getConnection().getAddress().getAddress() + ") disconnected: " + kickmsg);
+                        e.setCancelled(true);
+                        e.setCancelReason(TextComponent.fromLegacyText(kickmsg));
+                    }
+                }else{
+                    if(profile.getMinProtocolVersion()>0) {
+                        Protocol min = profile.getProtocol(this, c);
+                        if(c.getVersion()<min.getProtocol()){
+                            e.setCancelReason(TextComponent.fromLegacyText(ChatColor.DARK_RED+profile.getVersionLowMessage()));
+                            e.setCancelled(true);
+                        }
+                    }
+                }
             }
         }
     }

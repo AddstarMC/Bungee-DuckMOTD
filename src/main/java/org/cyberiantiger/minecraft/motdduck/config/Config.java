@@ -10,6 +10,7 @@ import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
+
 import net.md_5.bungee.api.config.ListenerInfo;
 import net.md_5.bungee.api.connection.PendingConnection;
 import org.cyberiantiger.minecraft.motdduck.Main;
@@ -18,9 +19,12 @@ import org.cyberiantiger.minecraft.motdduck.Main;
  *
  * @author antony
  */
+@SuppressWarnings("unused")
 public class Config {
 
+    @SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
     private Map<String, Profile> profiles;
+    @SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
     private Map<String, Server> servers;
 
     private transient final Map<ListenerInfo, Server> serverCache = new HashMap<>();

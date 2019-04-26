@@ -10,6 +10,7 @@ import net.md_5.bungee.api.ServerPing.Protocol;
  *
  * @author antony
  */
+@SuppressWarnings("unused")
 public class DuckProtocol {
 
     private String name;

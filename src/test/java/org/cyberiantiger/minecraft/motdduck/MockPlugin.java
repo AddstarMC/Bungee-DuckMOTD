@@ -1,18 +1,17 @@
 package org.cyberiantiger.minecraft.motdduck;
 
 import net.md_5.bungee.api.ProxyServer;
-import org.cyberiantiger.minecraft.motdduck.config.Config;
 
 import java.io.File;
 
 /**
- * Created for the Charlton IT Project.
- * Created by benjicharlton on 26/04/2019.
+ * Created for the AddstarMC Project.
+ * Created by Narimm on 26/04/2019.
  */
-public class TestMain extends Main {
-    private File config;
-    private ProxyServer server;
-    public TestMain(File config, ProxyServer proxyServer) {
+public class MockPlugin extends Main {
+    private final File config;
+    private final ProxyServer server;
+    MockPlugin(File config, ProxyServer proxyServer) {
         this.config = config;
         this.server = proxyServer;
     }
@@ -24,10 +23,6 @@ public class TestMain extends Main {
 
     public File getConfigFile() {
         return config;
-    }
-
-    @Override
-    public void onLoad() {
     }
 
     @Override
