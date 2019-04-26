@@ -32,21 +32,21 @@ import org.cyberiantiger.minecraft.motdduck.Main;
  *
  * @author antony
  */
-@SuppressWarnings({"unused"}) //config class
+@SuppressWarnings({"unused", "CanBeFinal"}) //config class
 public class Profile {
-    private static final PlayerInfo[] EMPTY_PLAYER_LIST = new PlayerInfo[0];
+    private static PlayerInfo[] EMPTY_PLAYER_LIST = new PlayerInfo[0];
     private static final Comparator<PlayerInfo> PLAYER_INFO_COMPARATOR =
             (o1, o2) -> String.CASE_INSENSITIVE_ORDER.compare(o1.getName(), o2.getName());
     private static final Comparator<ServerInfo> SERVER_COMPARATOR =
             (o1, o2) -> String.CASE_INSENSITIVE_ORDER.compare(o1.getName(), o2.getName());
     private static final ThreadLocal<Random> RNG = ThreadLocal.withInitial(Random::new);
-    private final PlayerListType playerListType = PlayerListType.NONE;
-    private final List<String> whitelistUsers = new ArrayList<>();
-    private final int maxPlayerList = 10;
-    private final int minProtocolVersion = 0;
+    private PlayerListType playerListType = PlayerListType.NONE;
+    private List<String> whitelistUsers = new ArrayList<>();
+    private int maxPlayerList = 10;
+    private int minProtocolVersion = 0;
     @SuppressWarnings("FieldCanBeLocal")
-    private final String versionLowMessage = "Please update your client to %s";
-    private final String playerListNetworkServerFormat = "%s (%d/%d)";
+    private String versionLowMessage = "Please update your client to %s";
+    private String playerListNetworkServerFormat = "%s (%d/%d)";
     private String icon;
     @SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
     private Map<Integer, DuckProtocol> protocolVersions;
@@ -97,7 +97,6 @@ public class Profile {
         return favicon;
     }
 
-    @SuppressWarnings("ConstantConditions")
     public Protocol getProtocol(Main plugin, PendingConnection c) {
         synchronized(this) {
             if (protocolVersions == null) {
@@ -107,7 +106,7 @@ public class Profile {
                 if (protocolVersions.containsKey(c.getVersion())) {
                     result = protocolVersions.get(c.getVersion());
                 } else {
-                    if(minProtocolVersion>0){
+                    if ( minProtocolVersion > 0 ){
                         if(c.getVersion()<minProtocolVersion){
                             result = protocolVersions.get(minProtocolVersion);
                         }else{
