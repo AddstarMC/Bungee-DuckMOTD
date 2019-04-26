@@ -1,0 +1,20 @@
+profiles:
+  test:
+    minProtocolVersion: 5
+    versionLowMessage: "Please update your client to %s"
+    protocolVersions:
+      5:
+        name: "1.7.4"
+        version: 5
+    staticMotd:
+      - "Test Static Motd"
+servers:
+  # Entries are of the format <ip address>:<port>
+  # * can be used as a wildcard for the entire host or port
+  '*:*':
+    # Name of default profile for this virtual host.
+    defaultProfile: test
+    # List of profiles for forcedHosts section in bungee's config.yml
+    # entries are in <host>:<port> format.
+    # * can be used as a wildcard for any part of the host string.
+    namedHosts: {}

@@ -16,7 +16,8 @@ import org.cyberiantiger.minecraft.motdduck.Main;
  *
  * @author antony
  */
-class Server {
+@SuppressWarnings("WeakerAccess")//this is a config class
+public class Server {
 
     private String defaultProfile;
     private Map<String, String> namedHosts;

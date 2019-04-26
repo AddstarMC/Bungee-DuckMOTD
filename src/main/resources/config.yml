@@ -8,8 +8,9 @@ profiles:
         # in plugins/DuckChat
         #
 #        icon: server.png
-
-            
+        # This is a the protocol version we want at minimum if you set this value you must at mimum create a
+        # protocolVersion entry that matches it
+#       minProtocolVersion: 4
         # List of client protocol versions, and what version to
         # reply with for each version, if there is a value for 0
         # then this protocol version is returned if we don't 

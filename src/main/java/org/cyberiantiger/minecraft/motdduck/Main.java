@@ -29,7 +29,6 @@ import net.md_5.bungee.api.plugin.Plugin;
 import net.md_5.bungee.event.EventHandler;
 
 import org.cyberiantiger.minecraft.motdduck.config.Config;
-import org.cyberiantiger.minecraft.motdduck.config.Data;
 import org.cyberiantiger.minecraft.motdduck.config.Profile;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.CustomClassLoaderConstructor;
@@ -42,17 +41,11 @@ import org.yaml.snakeyaml.introspector.BeanAccess;
  */
 public class Main extends Plugin implements Listener {
     private static final String CONFIG = "config.yml";
-    private static final String DATA = "data.yml";
 
     private Config config;
-    private Data userData;
 
-    private File getConfigFile() {
+    protected File getConfigFile() {
         return new File(getDataFolder(), CONFIG);
-    }
-
-    private File getDataFile() {
-        return new File(getDataFolder(), DATA);
     }
 
     private void saveDefaultConfig() {
@@ -64,7 +57,7 @@ public class Main extends Plugin implements Listener {
         if (!config.exists()) {
             try {
                 try (FileOutputStream out = new FileOutputStream(config)) {
-                    ByteStreams.copy(getClass().getClassLoader().getResourceAsStream(CONFIG), new FileOutputStream(config));
+                    ByteStreams.copy(getClass().getClassLoader().getResourceAsStream(CONFIG), out);
                 }
             } catch (IOException ex) {
                 getLogger().log(Level.SEVERE, "Could not create config", ex);
@@ -77,56 +70,17 @@ public class Main extends Plugin implements Listener {
         try {
             Yaml configLoader = new Yaml(new CustomClassLoaderConstructor(Config.class, getClass().getClassLoader()));
             configLoader.setBeanAccess(BeanAccess.FIELD);
-            this.config = configLoader.loadAs(new FileReader(getConfigFile()), Config.class);
+            config = configLoader.loadAs(new FileReader(getConfigFile()), Config.class);
         } catch (IOException | YAMLException ex) {
             getLogger().log(Level.SEVERE, "Error loading configuration", ex);
         }
     }
 
-    private void loadData() {
-        File dataFile = getDataFile();
-        if (dataFile.isFile() && dataFile.canRead()) {
-            Yaml yaml = new Yaml(new CustomClassLoaderConstructor(Data.class, getClass().getClassLoader()));
-            yaml.setBeanAccess(BeanAccess.FIELD);
-            try {
-                this.userData = yaml.loadAs(new FileReader(dataFile), Data.class);
-                userData.setPlugin(this);
-            } catch (IOException ex) {
-                getLogger().log(Level.SEVERE, "Error loading data", ex);
-            } catch (YAMLException ex) {
-                getLogger().log(Level.SEVERE, "Error loading configuration", ex);
-            }
-            if (userData == null) {
-                userData = new Data(this);
-            }
-        } else {
-            this.userData = new Data(this);
-        }
-    }
-
-    public void saveData() {
-        if (userData == null)
-        	return;
-
-        userData.save(getDataFile());
-        try {
-            Yaml yaml = new Yaml();
-            yaml.setBeanAccess(BeanAccess.FIELD);
-            try (FileWriter out = new FileWriter(getDataFile())) {
-                synchronized (userData) {
-                    out.write(yaml.dumpAsMap(userData));
-                }
-            }
-        } catch (IOException ex) {
-            getLogger().log(Level.WARNING, "Failed to write userdata file: " + getDataFile(), ex);
-        }
-    }
 
     @Override
     public void onLoad() {
         saveDefaultConfig();
         loadConfig();
-        //loadData();
     }
 
     @Override
@@ -134,19 +88,6 @@ public class Main extends Plugin implements Listener {
         getProxy().getPluginManager().registerCommand(this, new DuckMOTDCommand(this));
         getProxy().getPluginManager().registerListener(this, this);
     }
-
-    @Override
-    public void onDisable() {
-        //saveData();
-    }
-
-/*    @EventHandler
-    public void onPostLoginEvent(PostLoginEvent e) {
-        ProxiedPlayer player = e.getPlayer();
-        if (player != null) {
-            userData.addPlayer(e.getPlayer().getUniqueId(), e.getPlayer().getName(), e.getPlayer().getAddress().getAddress().getHostAddress());
-        }
-    }*/
 
     @EventHandler
     public void onProxyPing(ProxyPingEvent e) {
@@ -158,11 +99,7 @@ public class Main extends Plugin implements Listener {
                 ServerPing response = e.getResponse();
                 Favicon icon = profile.getFavicon(this);
                 Protocol protocol = profile.getProtocol(this, c);
-                //String user = userData.getPlayer(c.getAddress().getAddress().getHostAddress());
                 String motd = null;
-                /*if (user != null) {
-                    motd = profile.getDynamicMotd(user);
-                }*/
                 motd = profile.getStaticMotd();
                 Players players = profile.getPlayers(this);
                 if (icon != null) {
@@ -170,7 +107,9 @@ public class Main extends Plugin implements Listener {
                 }
                 if (protocol != null) {
                     response.setVersion(protocol);
-                }
+                    motd = null;
+                    response.setDescriptionComponent(TextComponent.fromLegacyText(ChatColor.DARK_RED+profile.getVersionLowMessage())[0]);
+                };
                 if (motd != null) {
                     BaseComponent[] text = TextComponent.fromLegacyText(motd);
 

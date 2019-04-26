@@ -23,7 +23,6 @@ class DuckMOTDCommand extends Command {
     @Override
     public void execute(CommandSender cs, String[] strings) {
         try {
-            plugin.saveData();
             plugin.loadConfig();
             cs.sendMessage(TextComponent.fromLegacyText("DuckMOTD config reloaded."));
         } catch (IllegalStateException e) {

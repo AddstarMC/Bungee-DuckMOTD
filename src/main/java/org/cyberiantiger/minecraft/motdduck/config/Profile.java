@@ -38,6 +38,162 @@ public class Profile {
             (o1, o2) -> String.CASE_INSENSITIVE_ORDER.compare(o1.getName(), o2.getName());
     private static final Comparator<ServerInfo> SERVER_COMPARATOR =
             (o1, o2) -> String.CASE_INSENSITIVE_ORDER.compare(o1.getName(), o2.getName());
+    private static final ThreadLocal<Random> RNG = ThreadLocal.withInitial(Random::new);
+    private final PlayerListType playerListType = PlayerListType.NONE;
+    private final List<String> whitelistUsers = new ArrayList<>();
+    private final int maxPlayerList = 10;
+    private int minProtocolVersion = 0;
+    private String versionLowMessage = "Please update your client to %s";
+    private final String playerListNetworkServerFormat = "%s (%d/%d)";
+    private String icon;
+    private Map<Integer, DuckProtocol> protocolVersions;
+
+    private List<String> dynamicMotd;
+    private List<String> staticMotd;
+    private int maxPlayers;
+    private List<String> playerListServers;
+    private List<String> playerListFixed;
+    private List<String> playerListNetworkHeader;
+    private List<String> playerListNetworkServers;
+    private List<String> playerListNetworkFooter;
+    private transient boolean loadedFavicon;
+    private transient Favicon favicon;
+    private transient boolean loadedPlayerList;
+    private transient Set<ServerInfo> playerListServersSet;
+    private transient List<ServerInfo> playerListNetworkServersList;
+    private boolean whitelistMode = false;
+    private String whitelistMsg = "You are not whitelisted for this server.";
+
+    public int getMinProtocolVersion() {
+        return minProtocolVersion;
+    }
+
+    public Favicon getFavicon(Main plugin) {
+        synchronized(this) {
+            if (!loadedFavicon) {
+                if (icon != null) {
+                    File faviconFile = new File(plugin.getDataFolder(), icon);
+                    if (faviconFile.isFile()) {
+                        try {
+                            favicon = Favicon.create(ImageIO.read(faviconFile));
+                        } catch (IOException ex) {
+                            plugin.getLogger().log(Level.WARNING, "Error loading icon file: " + faviconFile, ex);
+                        }
+                    }
+                }
+                loadedFavicon = true;
+            }
+        }
+        return favicon;
+    }
+
+    public Protocol getProtocol(Main plugin, PendingConnection c) {
+        synchronized(this) {
+            if (protocolVersions == null) {
+                return null;
+            } else {
+                DuckProtocol result;
+                if (protocolVersions.containsKey(c.getVersion())) {
+                    result = protocolVersions.get(c.getVersion());
+                } else {
+                    if(minProtocolVersion>0){
+                        if(c.getVersion()<minProtocolVersion){
+                            result = protocolVersions.get(minProtocolVersion);
+                        }else{
+                            return null;
+                        }
+                    }else{
+                        result = protocolVersions.get(0);
+                    }
+                }
+                return result == null ? null : result.asProtocol();
+            }
+        }
+    }
+
+    public String getDynamicMotd(String user) {
+        if (dynamicMotd != null && !dynamicMotd.isEmpty())  {
+            return String.format(dynamicMotd.get(RNG.get().nextInt(dynamicMotd.size())), user);
+        } else {
+            return null;
+        }
+    }
+
+    public String getStaticMotd() {
+        if (staticMotd != null && !staticMotd.isEmpty()) {
+            return staticMotd.get(RNG.get().nextInt(staticMotd.size()));
+        } else {
+            return null;
+        }
+    }
+
+    public String getVersionLowMessage(){
+        return String.format(versionLowMessage,protocolVersions.get(minProtocolVersion).asProtocol().getName());
+    }
+
+    public boolean getWhitelistMode() {
+        return whitelistMode;
+    }
+    
+    public String getWhitelistMsg() {
+        return whitelistMsg;
+    }
+
+    public List<String> getWhitelistUsers() {
+    	return whitelistUsers;
+    }
+
+    public Players getPlayers(Main plugin) {
+        ProxyServer proxy = plugin.getProxy();
+        synchronized(this) {
+            if (!loadedPlayerList) {
+                if (playerListServers != null) {
+                    playerListServersSet = new HashSet<>(playerListServers.size());
+                    for (String server : playerListServers) {
+                        ServerInfo serverInfo = proxy.getServerInfo(server);
+                        if (serverInfo != null) {
+                            playerListServersSet.add(serverInfo);
+                        }
+                    }
+                }
+                loadedPlayerList = true;
+            }
+        }
+        List<ProxiedPlayer> result = new LinkedList<>();
+        for (ProxiedPlayer player : plugin.getProxy().getPlayers()) {
+            Server server = player.getServer();
+            if (server != null) {
+                if (playerListServersSet != null) {
+                    if(playerListServersSet.contains(server.getInfo())) {
+                        result.add(player);
+                    }
+                } else {
+                    result.add(player);
+                }
+            }
+        }
+        return new Players(maxPlayers, result.size(), playerListType.getPlayerInfos(plugin, this, result));
+    }
+
+    private Iterable<ServerInfo> getPlayerListNetworkServers(Main plugin) {
+        synchronized (this) {
+            if (playerListNetworkServersList == null) {
+                playerListNetworkServersList = new ArrayList<>();
+                if (playerListNetworkServers != null) {
+                    for (String s : playerListNetworkServers) {
+                        ServerInfo info = plugin.getProxy().getServerInfo(s);
+                        if (info != null) {
+                            playerListNetworkServersList.add(info);
+                        }
+                    }
+                } else {
+                    playerListNetworkServersList.addAll(plugin.getProxy().getServers().values());
+                    playerListNetworkServersList.sort(SERVER_COMPARATOR);
+                }
+            }
+            return playerListNetworkServersList;
+        }
+    }
 
     private enum PlayerListType {
         NONE() {
@@ -97,148 +253,7 @@ public class Profile {
             }
         };
 
-        protected abstract PlayerInfo[] getPlayerInfos(Main plugin, Profile profile, List<ProxiedPlayer> players);
+        public abstract PlayerInfo[] getPlayerInfos(Main plugin, Profile profile, List<ProxiedPlayer> players);
 
-    }
-
-    private String icon;
-    private Map<Integer, DuckProtocol> protocolVersions;
-    private List<String> dynamicMotd;
-    private List<String> staticMotd;
-    private int maxPlayers;
-    private List<String> playerListServers;
-    private final PlayerListType playerListType = PlayerListType.NONE;
-    private final List<String> whitelistUsers = new ArrayList<>();
-
-    private final int maxPlayerList = 10;
-
-    private List<String> playerListFixed;
-
-    private List<String> playerListNetworkHeader;
-    private List<String> playerListNetworkServers;
-    private List<String> playerListNetworkFooter;
-    private final String playerListNetworkServerFormat = "%s (%d/%d)";
-
-    private transient boolean loadedFavicon;
-    private transient Favicon favicon;
-    private transient boolean loadedPlayerList;
-    private transient Set<ServerInfo> playerListServersSet;
-    private transient List<ServerInfo> playerListNetworkServersList;
-
-    private static final ThreadLocal<Random> RNG = ThreadLocal.withInitial(Random::new);
-
-    public Favicon getFavicon(Main plugin) {
-        synchronized(this) {
-            if (!loadedFavicon) {
-                if (icon != null) {
-                    File faviconFile = new File(plugin.getDataFolder(), icon);
-                    if (faviconFile.isFile()) {
-                        try {
-                            favicon = Favicon.create(ImageIO.read(faviconFile));
-                        } catch (IOException ex) {
-                            plugin.getLogger().log(Level.WARNING, "Error loading icon file: " + faviconFile, ex);
-                        }
-                    }
-                }
-                loadedFavicon = true;
-            }
-        }
-        return favicon;
-    }
-
-    public Protocol getProtocol(Main plugin, PendingConnection c) {
-        synchronized(this) {
-            if (protocolVersions == null) {
-                return null;
-            } else {
-                DuckProtocol result;
-                if (protocolVersions.containsKey(c.getVersion())) {
-                    result = protocolVersions.get(c.getVersion());
-                } else {
-                    result = protocolVersions.get(0);
-                }
-                return result == null ? null : result.asProtocol();
-            }
-        }
-    }
-
-    public String getDynamicMotd(String user) {
-        if (dynamicMotd != null && !dynamicMotd.isEmpty())  {
-            return String.format(dynamicMotd.get(RNG.get().nextInt(dynamicMotd.size())), user);
-        } else {
-            return null;
-        }
-    }
-
-    public String getStaticMotd() {
-        if (staticMotd != null && !staticMotd.isEmpty()) {
-            return staticMotd.get(RNG.get().nextInt(staticMotd.size()));
-        } else {
-            return null;
-        }
-    }
-    
-    public boolean getWhitelistMode() {
-        return false;
-    }
-
-    public String getWhitelistMsg() {
-        return "You are not whitelisted for this server.";
-    }
-
-    public List<String> getWhitelistUsers() {
-    	return whitelistUsers;
-    }
-
-    public Players getPlayers(Main plugin) {
-        ProxyServer proxy = plugin.getProxy();
-        synchronized(this) {
-            if (!loadedPlayerList) {
-                if (playerListServers != null) {
-                    playerListServersSet = new HashSet<>(playerListServers.size());
-                    for (String server : playerListServers) {
-                        ServerInfo serverInfo = proxy.getServerInfo(server);
-                        if (serverInfo != null) {
-                            playerListServersSet.add(serverInfo);
-                        }
-                    }
-                }
-                loadedPlayerList = true;
-            }
-        }
-        List<ProxiedPlayer> result = new LinkedList<>();
-        for (ProxiedPlayer player : plugin.getProxy().getPlayers()) {
-            Server server = player.getServer();
-            if (server != null) {
-                if (playerListServersSet != null) {
-                    if(playerListServersSet.contains(server.getInfo())) {
-                        result.add(player);
-                    }
-                } else {
-                    result.add(player);
-                }
-            }
-        }
-        return new Players(maxPlayers, result.size(), playerListType.getPlayerInfos(plugin, this, result));
-    }
-
-    private Iterable<ServerInfo> getPlayerListNetworkServers(Main plugin) {
-        synchronized (this) {
-            if (playerListNetworkServersList == null) {
-                playerListNetworkServersList = new ArrayList<>();
-                if (playerListNetworkServers != null) {
-                    for (String s : playerListNetworkServers) {
-                        ServerInfo info = plugin.getProxy().getServerInfo(s);
-                        if (info != null) {
-                            playerListNetworkServersList.add(info);
-                        }
-                    }
-                } else {
-                    playerListNetworkServersList.addAll(plugin.getProxy().getServers().values());
-                    playerListNetworkServersList.sort(SERVER_COMPARATOR);
-                }
-            }
-            return playerListNetworkServersList;
-        }
     }
 }
