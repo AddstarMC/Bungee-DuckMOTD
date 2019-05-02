@@ -70,9 +70,9 @@ public class Profile {
     private transient Set<ServerInfo> playerListServersSet;
     private transient List<ServerInfo> playerListNetworkServersList;
     @SuppressWarnings("FieldCanBeLocal")
-    private final boolean whitelistMode = false;
+    private boolean whitelistMode = false;
     @SuppressWarnings("FieldCanBeLocal")
-    private final String whitelistMsg = "You are not whitelisted for this server.";
+    private String whitelistMsg = "You are not whitelisted for this server.";
 
     public int getMinProtocolVersion() {
         return minProtocolVersion;
