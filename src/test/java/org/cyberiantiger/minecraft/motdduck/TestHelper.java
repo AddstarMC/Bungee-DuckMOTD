@@ -12,6 +12,7 @@ import net.md_5.bungee.api.scheduler.TaskScheduler;
 
 import java.io.File;
 import java.net.InetSocketAddress;
+import java.net.SocketAddress;
 import java.util.*;
 import java.util.logging.Logger;
 
@@ -49,6 +50,7 @@ class TestHelper {
                 return info;
             }
 
+            @SuppressWarnings("deprecation")
             @Override
             public String getUUID() {
                 return testUUID.toString();
@@ -79,11 +81,18 @@ class TestHelper {
                 return false;
             }
 
+            @SuppressWarnings("deprecation")
             @Override
             public InetSocketAddress getAddress() {
                 return address;
             }
 
+            @Override
+            public SocketAddress getSocketAddress() {
+                return null;
+            }
+
+            @SuppressWarnings("deprecation")
             @Override
             public void disconnect(String reason) {
                 throw new UnsupportedOperationException("NOT YET SUPPORTED");
@@ -216,11 +225,13 @@ class TestHelper {
                 return null;
             }
 
+            @SuppressWarnings("deprecation")
             @Override
             public String getGameVersion() {
                 return null;
             }
 
+            @SuppressWarnings("deprecation")
             @Override
             public int getProtocolVersion() {
                 return 0;
@@ -228,6 +239,11 @@ class TestHelper {
 
             @Override
             public ServerInfo constructServerInfo(String name, InetSocketAddress address, String motd, boolean restricted) {
+                return null;
+            }
+
+            @Override
+            public ServerInfo constructServerInfo(String s, SocketAddress socketAddress, String s1, boolean b) {
                 return null;
             }
 
@@ -251,6 +267,7 @@ class TestHelper {
                 return 0;
             }
 
+            @SuppressWarnings("deprecation")
             @Override
             public void broadcast(String message) {
                 System.out.println(message);
@@ -275,6 +292,7 @@ class TestHelper {
                 return Collections.emptyList();
             }
 
+            @SuppressWarnings("deprecation")
             @Override
             public ProxyConfig getConfig() {
                 return null;
