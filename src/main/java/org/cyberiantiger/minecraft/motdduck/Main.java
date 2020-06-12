@@ -141,7 +141,7 @@ public class Main extends Plugin implements Listener {
                 }else{
                     if(profile.getMinProtocolVersion()>0) {
                         Protocol min = profile.getProtocol(this, c);
-                        if(c.getVersion()<min.getProtocol()){
+                        if ((min != null) && (c.getVersion()<min.getProtocol())) {
                             e.setCancelReason(TextComponent.fromLegacyText(ChatColor.DARK_RED+profile.getVersionLowMessage()));
                             e.setCancelled(true);
                         }
