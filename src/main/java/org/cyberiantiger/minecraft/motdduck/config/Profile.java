@@ -102,17 +102,11 @@ public class Profile {
             if (protocolVersions == null) {
                 return null;
             } else {
-                DuckProtocol result;
+                DuckProtocol result = null;
                 if (protocolVersions.containsKey(c.getVersion())) {
                     result = protocolVersions.get(c.getVersion());
                 } else {
-                    if ( minProtocolVersion > 0 ){
-                        if(c.getVersion()<minProtocolVersion){
-                            result = protocolVersions.get(minProtocolVersion);
-                        }else{
-                            return null;
-                        }
-                    }else{
+                    if ((minProtocolVersion > 0) && (c.getVersion() < minProtocolVersion)) {
                         result = protocolVersions.get(0);
                     }
                 }
@@ -131,7 +125,7 @@ public class Profile {
     }
 
     public String getVersionLowMessage(){
-        return String.format(versionLowMessage,protocolVersions.get(minProtocolVersion).asProtocol().getName());
+        return String.format(versionLowMessage, protocolVersions.get(0).asProtocol().getName());
     }
 
     public boolean getWhitelistMode() {
